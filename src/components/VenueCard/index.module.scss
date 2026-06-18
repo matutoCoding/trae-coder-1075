@@ -1,0 +1,118 @@
+@use '@/styles/variables.scss' as *;
+
+.card {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+  margin-bottom: $spacing-md;
+  transition: all $transition-base;
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: $shadow-card-hover;
+  }
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  height: 280rpx;
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+}
+
+.typeTag {
+  position: absolute;
+  top: $spacing-md;
+  left: $spacing-md;
+  padding: 6rpx 20rpx;
+  background: rgba(0, 180, 168, 0.9);
+  color: $color-text-white;
+  font-size: $font-size-xs;
+  border-radius: $radius-sm;
+  font-weight: $font-weight-medium;
+}
+
+.content {
+  padding: $spacing-lg;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: $spacing-sm;
+}
+
+.name {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+  flex: 1;
+  margin-right: $spacing-sm;
+}
+
+.price {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-price;
+  white-space: nowrap;
+
+  .unit {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-normal;
+    color: $color-text-tertiary;
+  }
+}
+
+.description {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+  margin-bottom: $spacing-md;
+  @include text-ellipsis-multi(2);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.facilities {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.facilityTag {
+  padding: 4rpx 12rpx;
+  background-color: $color-bg-tag;
+  color: $color-primary;
+  font-size: 20rpx;
+  border-radius: $radius-xs;
+  white-space: nowrap;
+}
+
+.button {
+  @include button-reset;
+  height: $button-height-sm;
+  padding: 0 $spacing-lg;
+  border-radius: $radius-button;
+  background: $gradient-primary;
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+
+  &:active {
+    opacity: 0.85;
+    transform: scale(0.96);
+  }
+}

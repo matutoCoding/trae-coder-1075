@@ -1,0 +1,156 @@
+@use '@/styles/variables.scss' as *;
+
+.card {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-md;
+  overflow: hidden;
+  transition: all $transition-base;
+
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.orderNo {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.status {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+
+  &.pending {
+    color: $color-warning;
+  }
+
+  &.confirmed {
+    color: $color-primary;
+  }
+
+  &.completed {
+    color: $color-success;
+  }
+
+  &.cancelled, &.refunded {
+    color: $color-text-tertiary;
+  }
+}
+
+.cardBody {
+  padding: $spacing-lg;
+  display: flex;
+  gap: $spacing-md;
+}
+
+.venueImage {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: $radius-md;
+  flex-shrink: 0;
+}
+
+.orderInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.venueName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+  @include text-ellipsis;
+}
+
+.orderTime {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xs;
+  display: flex;
+  align-items: center;
+}
+
+.orderDate {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+}
+
+.priceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: $spacing-sm;
+}
+
+.price {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-price;
+
+  .free {
+    color: $color-public-welfare;
+  }
+}
+
+.duration {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-sm;
+  padding: 0 $spacing-lg $spacing-lg;
+}
+
+.btnCancel {
+  @include button-reset;
+  height: $button-height-sm;
+  padding: 0 $spacing-lg;
+  border-radius: $radius-button;
+  border: 2rpx solid $color-border;
+  background: transparent;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+
+  &:active {
+    background: $color-bg-hover;
+  }
+}
+
+.btnDetail {
+  @include button-reset;
+  height: $button-height-sm;
+  padding: 0 $spacing-lg;
+  border-radius: $radius-button;
+  background: $gradient-primary;
+  color: $color-text-white;
+  font-size: $font-size-sm;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.publicTag {
+  display: inline-block;
+  padding: 2rpx 12rpx;
+  background: #E8F0FF;
+  color: $color-public-welfare;
+  font-size: 20rpx;
+  border-radius: $radius-xs;
+  margin-left: $spacing-xs;
+}

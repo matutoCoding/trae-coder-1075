@@ -1,0 +1,201 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $gradient-page;
+  padding-bottom: $spacing-xl;
+}
+
+.header {
+  background: $gradient-primary;
+  padding: 80rpx $page-padding $spacing-xl;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -80rpx;
+    right: -60rpx;
+    width: 240rpx;
+    height: 240rpx;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+  }
+}
+
+.userInfo {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: $spacing-lg;
+}
+
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.5);
+}
+
+.userText {
+  flex: 1;
+  color: $color-text-white;
+}
+
+.userName {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-xs;
+}
+
+.userDesc {
+  font-size: $font-size-sm;
+  opacity: 0.9;
+}
+
+.statsRow {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-around;
+  margin-top: $spacing-xl;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: $radius-lg;
+  padding: $spacing-lg 0;
+  backdrop-filter: blur(10px);
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: $color-text-white;
+}
+
+.statNumber {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  opacity: 0.9;
+  margin-top: $spacing-xs;
+}
+
+.menuSection {
+  margin: $spacing-md $page-padding;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+}
+
+.sectionTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  padding: $spacing-lg $spacing-lg $spacing-md;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1rpx solid $color-divider;
+  transition: background $transition-base;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:active {
+    background: $color-bg-hover;
+  }
+}
+
+.menuIcon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-md;
+  background: $color-bg-tag;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  margin-right: $spacing-md;
+}
+
+.menuText {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.menuArrow {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}
+
+.badge {
+  padding: 2rpx 12rpx;
+  background: $color-error;
+  color: $color-text-white;
+  font-size: $font-size-xs;
+  border-radius: 20rpx;
+  margin-right: $spacing-sm;
+}
+
+.rateSection {
+  margin: $spacing-md $page-padding;
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, #FFF7E8 0%, #FFE8D4 100%);
+  border-radius: $radius-lg;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rateContent {
+  flex: 1;
+}
+
+.rateTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-warning;
+  margin-bottom: $spacing-xs;
+}
+
+.rateDesc {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.rateButton {
+  @include button-reset;
+  height: $button-height-sm;
+  padding: 0 $spacing-lg;
+  border-radius: $radius-button;
+  background: $color-warning;
+  color: $color-text-white;
+  font-size: $font-size-sm;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.footer {
+  text-align: center;
+  padding: $spacing-lg 0;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}

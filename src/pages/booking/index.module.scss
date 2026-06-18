@@ -1,0 +1,360 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $gradient-page;
+  padding-bottom: 200rpx;
+}
+
+.section {
+  margin: $spacing-md $page-padding;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+
+  &::before {
+    content: '';
+    width: 6rpx;
+    height: 32rpx;
+    background: $gradient-primary;
+    border-radius: 3rpx;
+    margin-right: $spacing-sm;
+  }
+}
+
+.venueSelector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.venueItem {
+  flex: 0 0 calc(50% - #{$spacing-sm} / 2);
+  padding: $spacing-md;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+  transition: all $transition-base;
+
+  &.active {
+    border-color: $color-primary;
+    background: $color-bg-tag;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.venueName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+  @include text-ellipsis;
+}
+
+.venueInfo {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.dateSection {
+  // 日期选择区
+}
+
+.dateScroll {
+  white-space: nowrap;
+}
+
+.dateList {
+  display: inline-flex;
+  gap: $spacing-sm;
+  padding: $spacing-xs 0;
+}
+
+.dateItem {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100rpx;
+  padding: $spacing-md $spacing-sm;
+  border-radius: $radius-md;
+  background: $color-bg-hover;
+  transition: all $transition-base;
+  flex-shrink: 0;
+
+  &.active {
+    background: $gradient-primary;
+    color: $color-text-white;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.dateDay {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  margin-bottom: 4rpx;
+}
+
+.dateWeek {
+  font-size: $font-size-xs;
+  opacity: 0.8;
+}
+
+.timeSection {
+  // 时段选择区
+}
+
+.timeGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-sm;
+}
+
+.timeSlot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $spacing-md $spacing-xs;
+  border-radius: $radius-md;
+  border: 2rpx solid $color-border;
+  background: $color-bg-card;
+  transition: all $transition-base;
+
+  &.available:active {
+    transform: scale(0.95);
+  }
+
+  &.booked {
+    background: $color-bg-hover;
+    border-color: $color-border;
+    opacity: 0.5;
+  }
+
+  &.selected {
+    border-color: $color-primary;
+    background: $color-bg-tag;
+  }
+
+  &.inRange {
+    background: rgba(0, 180, 168, 0.15);
+    border-color: $color-primary-light;
+  }
+}
+
+.timeText {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+}
+
+.timePrice {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+}
+
+.rateTag {
+  font-size: 18rpx;
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  margin-top: 4rpx;
+
+  &.peak {
+    background: #FFECE8;
+    color: $color-peak;
+  }
+
+  &.normal {
+    background: $color-bg-tag;
+    color: $color-normal;
+  }
+
+  &.off-peak {
+    background: #F2F3F5;
+    color: $color-off-peak;
+  }
+
+  &.public-welfare {
+    background: #E8F0FF;
+    color: $color-public-welfare;
+  }
+}
+
+.legend {
+  display: flex;
+  gap: $spacing-lg;
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.legendDot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 4rpx;
+  margin-right: $spacing-xs;
+
+  &.available {
+    background: $color-bg-card;
+    border: 2rpx solid $color-border;
+  }
+
+  &.booked {
+    background: $color-bg-hover;
+    opacity: 0.5;
+  }
+
+  &.selected {
+    background: $color-primary;
+  }
+}
+
+.summaryBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: $color-bg-card;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.08);
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+}
+
+.summaryInfo {
+  flex: 1;
+}
+
+.summaryTime {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xs;
+}
+
+.summaryPrice {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-price;
+
+  .label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-normal;
+    color: $color-text-secondary;
+    margin-right: $spacing-xs;
+  }
+}
+
+.bookButton {
+  @include button-reset;
+  height: $button-height-lg;
+  padding: 0 $spacing-xl * 1.5;
+  border-radius: $radius-button;
+  background: $gradient-primary;
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+
+  &.disabled {
+    background: $color-text-disabled;
+    color: $color-text-white;
+  }
+}
+
+.conflictTip {
+  margin: 0 $page-padding $spacing-md;
+  padding: $spacing-md;
+  background: #FFF7E8;
+  border-radius: $radius-md;
+  color: $color-warning;
+  font-size: $font-size-sm;
+  display: flex;
+  align-items: flex-start;
+
+  .icon {
+    margin-right: $spacing-sm;
+    font-size: $font-size-md;
+  }
+}
+
+.feePreview {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.feePreviewTitle {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+}
+
+.feeItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-xs;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+
+  .feeLabel {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+  }
+}
+
+.feeTypeTag {
+  font-size: 18rpx;
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+
+  &.peak {
+    background: #FFECE8;
+    color: $color-peak;
+  }
+
+  &.normal {
+    background: $color-bg-tag;
+    color: $color-normal;
+  }
+
+  &.off-peak {
+    background: #F2F3F5;
+    color: $color-off-peak;
+  }
+
+  &.public-welfare {
+    background: #E8F0FF;
+    color: $color-public-welfare;
+  }
+}

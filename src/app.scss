@@ -1,0 +1,146 @@
+@use '@/styles/compat.scss';
+@use '@/styles/variables.scss' as *;
+
+// 全局样式
+page {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB',
+    sans-serif;
+  font-size: $font-size-md;
+  line-height: $line-height-normal;
+  color: $color-text-primary;
+  background: $gradient-page;
+  min-height: 100vh;
+}
+
+// 通用容器
+.page-container {
+  padding: $spacing-lg $page-padding;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+// 卡片通用样式
+.card {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+// 通用按钮样式
+.btn-primary {
+  @include button-reset;
+  height: $button-height-md;
+  border-radius: $radius-button;
+  background: $gradient-primary;
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.btn-outline {
+  @include button-reset;
+  height: $button-height-md;
+  border-radius: $radius-button;
+  background: transparent;
+  border: 2rpx solid $color-primary;
+  color: $color-primary;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+}
+
+// 标签样式
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rpx 16rpx;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+
+  &.tag-primary {
+    background-color: $color-bg-tag;
+    color: $color-primary;
+  }
+
+  &.tag-warning {
+    background-color: #FFF7E8;
+    color: $color-warning;
+  }
+
+  &.tag-success {
+    background-color: #E8FFEE;
+    color: $color-success;
+  }
+
+  &.tag-error {
+    background-color: #FFECE8;
+    color: $color-error;
+  }
+
+  &.tag-info {
+    background-color: #E8F0FF;
+    color: $color-info;
+  }
+}
+
+// 空状态
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl * 2 $spacing-lg;
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+}
+
+// 分割线
+.divider {
+  height: 1rpx;
+  background-color: $color-divider;
+  margin: $spacing-md 0;
+}
+
+// Flex 工具类
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-1 {
+  flex: 1;
+}
