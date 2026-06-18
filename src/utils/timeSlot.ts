@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import type { TimeSlot, DateOption, TimeSlotRate, RateType } from '@/types';
+import type { TimeSlot, DateOption, TimeSlotRate, RateType, RateValidationResult } from '@/types';
 
 const RATE_NAMES: Record<RateType, string> = {
   peak: '高峰时段',
@@ -56,13 +56,52 @@ export function generateTimeSlots(
 
 export function getDefaultRateTable(): TimeSlotRate[] {
   return [
-    { id: 'r1', startTime: '06:00', endTime: '09:00', rateType: 'off-peak', pricePerHour: 20 },
-    { id: 'r2', startTime: '09:00', endTime: '12:00', rateType: 'normal', pricePerHour: 40 },
-    { id: 'r3', startTime: '12:00', endTime: '14:00', rateType: 'public-welfare', pricePerHour: 0 },
-    { id: 'r4', startTime: '14:00', endTime: '18:00', rateType: 'normal', pricePerHour: 40 },
-    { id: 'r5', startTime: '18:00', endTime: '21:00', rateType: 'peak', pricePerHour: 60 },
-    { id: 'r6', startTime: '21:00', endTime: '22:00', rateType: 'normal', pricePerHour: 40 }
+    { id: 'r1', startTime: '06:00', endTime: '09:00', rateType: 'off-peak', pricePerHour: 20, enabled: true },
+    { id: 'r2', startTime: '09:00', endTime: '12:00', rateType: 'normal', pricePerHour: 40, enabled: true },
+    { id: 'r3', startTime: '12:00', endTime: '14:00', rateType: 'public-welfare', pricePerHour: 0, enabled: true },
+    { id: 'r4', startTime: '14:00', endTime: '18:00', rateType: 'normal', pricePerHour: 40, enabled: true },
+    { id: 'r5', startTime: '18:00', endTime: '21:00', rateType: 'peak', pricePerHour: 60, enabled: true },
+    { id: 'r6', startTime: '21:00', endTime: '22:00', rateType: 'normal', pricePerHour: 40, enabled: true }
   ];
+}
+
+export function validateRateTable(
+  rate: TimeSlotRate,
+  allRates: TimeSlotRate[],
+  excludeId?: string,
+  openTime: string = '06:00',
+  closeTime: string = '22:00'
+): RateValidationResult {
+  const startMin = timeToMinutes(rate.startTime);
+  const endMin = timeToMinutes(rate.endTime);
+  const openMin = timeToMinutes(openTime);
+  const closeMin = timeToMinutes(closeTime);
+
+  if (startMin >= endMin) {
+    return { valid: false, message: '结束时间必须晚于开始时间' };
+  }
+
+  if (startMin < openMin || endMin > closeMin) {
+    return { valid: false, message: `费率时段必须在营业时间内（${openTime} - ${closeTime}）` };
+  }
+
+  if (rate.pricePerHour < 0) {
+    return { valid: false, message: '单价不能为负数' };
+  }
+
+  const others = allRates.filter(r => r.id !== excludeId && r.enabled !== false);
+  for (const other of others) {
+    const oStart = timeToMinutes(other.startTime);
+    const oEnd = timeToMinutes(other.endTime);
+    if (startMin < oEnd && endMin > oStart) {
+      return {
+        valid: false,
+        message: `与现有时段 ${other.startTime}-${other.endTime} 重叠，请调整时间范围`
+      };
+    }
+  }
+
+  return { valid: true, message: '' };
 }
 
 export function getRateForTime(time: string, rateTable: TimeSlotRate[]): TimeSlotRate | null {

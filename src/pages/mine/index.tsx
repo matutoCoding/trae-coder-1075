@@ -5,8 +5,7 @@ import styles from './index.module.scss';
 import { useBookingStore } from '@/store/useBookingStore';
 
 const MinePage: React.FC = () => {
-  const { getMyOrders } = useBookingStore();
-  const orders = getMyOrders();
+  const orders = useBookingStore(state => state.orders);
 
   const stats = useMemo(() => {
     const total = orders.length;
@@ -22,13 +21,7 @@ const MinePage: React.FC = () => {
         Taro.switchTab({ url: '/pages/orders/index' });
         break;
       case 'rate':
-        Taro.showToast({ title: '费率说明', icon: 'none' });
-        Taro.showModal({
-          title: '时段费率说明',
-          content: '【低峰时段】06:00-09:00 ¥20/小时\n【平峰时段】09:00-12:00、14:00-18:00、21:00-22:00 ¥40/小时\n【公益时段】12:00-14:00 免费\n【高峰时段】18:00-21:00 ¥60/小时',
-          showCancel: false,
-          confirmText: '我知道了'
-        });
+        Taro.navigateTo({ url: '/pages/rate-manage/index' });
         break;
       case 'public':
         Taro.showModal({
@@ -54,7 +47,7 @@ const MinePage: React.FC = () => {
 
   const menuItems1 = [
     { icon: '📋', text: '我的订单', action: 'orders' },
-    { icon: '💰', text: '费率说明', action: 'rate' },
+    { icon: '💰', text: '费率管理', action: 'rate' },
     { icon: '💝', text: '公益时段', action: 'public' }
   ];
 

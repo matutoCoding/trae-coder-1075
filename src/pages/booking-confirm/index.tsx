@@ -6,7 +6,7 @@ import styles from './index.module.scss';
 import { useBookingStore } from '@/store/useBookingStore';
 import { getVenueById } from '@/data/venues';
 import { calculateBilling } from '@/utils/billing';
-import { getDefaultRateTable, formatDuration, formatDate } from '@/utils/timeSlot';
+import { formatDuration, formatDate } from '@/utils/timeSlot';
 import { checkTimeConflict, validateBookingTime } from '@/utils/conflict';
 import type { BillingInfo, BookingForm } from '@/types';
 
@@ -14,7 +14,7 @@ const BookingConfirmPage: React.FC = () => {
   const router = useRouter();
   const { venueId, date, startTime, endTime } = router.params;
 
-  const { createBooking, orders } = useBookingStore();
+  const { createBooking, orders, getActiveRateTable } = useBookingStore();
 
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
@@ -22,7 +22,7 @@ const BookingConfirmPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const venue = useMemo(() => getVenueById(venueId || ''), [venueId]);
-  const rateTable = useMemo(() => getDefaultRateTable(), []);
+  const rateTable = useMemo(() => getActiveRateTable(), [getActiveRateTable]);
 
   const billing: BillingInfo | null = useMemo(() => {
     if (!startTime || !endTime) return null;

@@ -18,11 +18,14 @@ const OrderDetailPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.params;
 
-  const { getOrderById, cancelOrder } = useBookingStore();
+  const orders = useBookingStore(state => state.orders);
+  const cancelOrder = useBookingStore(state => state.cancelOrder);
 
-  const order = useMemo(() => getOrderById(id || ''), [id, getOrderById]);
+  const order = useMemo(() => orders.find(o => o.id === id), [orders, id]);
 
   const handleCancel = async () => {
+    if (!order) return;
+
     const res = await Taro.showModal({
       title: '确认取消',
       content: '确定要取消此预订吗？取消后时段将释放给其他用户。',
@@ -45,10 +48,6 @@ const OrderDetailPage: React.FC = () => {
         });
       }
     }
-  };
-
-  const handleBack = () => {
-    Taro.navigateBack();
   };
 
   const handleContact = () => {

@@ -6,7 +6,8 @@ export default defineAppConfig({
     'pages/mine/index',
     'pages/venue-detail/index',
     'pages/booking-confirm/index',
-    'pages/order-detail/index'
+    'pages/order-detail/index',
+    'pages/rate-manage/index'
   ],
   window: {
     backgroundTextStyle: 'light',

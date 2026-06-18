@@ -1,31 +1,29 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, Button } from '@tarojs/components';
-import Taro, { useRouter } from '@tarojs/taro';
+import Taro from '@tarojs/taro';
 import classnames from 'classnames';
 import styles from './index.module.scss';
 import { useBookingStore } from '@/store/useBookingStore';
 import { generateDateOptions, formatDuration, timeToMinutes, getRateName } from '@/utils/timeSlot';
 import { formatCurrency } from '@/utils/billing';
 import type { TimeSlot, DateOption } from '@/types';
-import { venues } from '@/data/venues';
 
 const BookingPage: React.FC = () => {
   const router = useRouter();
   const { venueId } = router.params;
 
-  const {
-    selectedVenueId,
-    selectedDate,
-    selectedStartTime,
-    selectedEndTime,
-    setSelectedVenue,
-    setSelectedDate,
-    setSelectedStartTime,
-    setSelectedEndTime,
-    getAvailableTimeSlots,
-    calculateBilling,
-    checkConflict
-  } = useBookingStore();
+  const venues = useBookingStore(state => state.venues);
+  const selectedVenueId = useBookingStore(state => state.selectedVenueId);
+  const selectedDate = useBookingStore(state => state.selectedDate);
+  const selectedStartTime = useBookingStore(state => state.selectedStartTime);
+  const selectedEndTime = useBookingStore(state => state.selectedEndTime);
+  const setSelectedVenue = useBookingStore(state => state.setSelectedVenue);
+  const setSelectedDate = useBookingStore(state => state.setSelectedDate);
+  const setSelectedStartTime = useBookingStore(state => state.setSelectedStartTime);
+  const setSelectedEndTime = useBookingStore(state => state.setSelectedEndTime);
+  const getAvailableTimeSlots = useBookingStore(state => state.getAvailableTimeSlots);
+  const calculateBilling = useBookingStore(state => state.calculateBilling);
+  const checkConflict = useBookingStore(state => state.checkConflict);
 
   const [dateOptions, setDateOptions] = useState<DateOption[]>([]);
 

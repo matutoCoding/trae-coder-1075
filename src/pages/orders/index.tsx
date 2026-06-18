@@ -22,9 +22,16 @@ const tabOptions: TabOption[] = [
 
 const OrdersPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
-  const { getMyOrders, cancelOrder } = useBookingStore();
+  const orders = useBookingStore(state => state.orders);
+  const cancelOrder = useBookingStore(state => state.cancelOrder);
 
-  const allOrders = getMyOrders();
+  const allOrders = useMemo(() => {
+    return [...orders].sort((a, b) => {
+      const dateA = new Date(`${a.date} ${a.startTime}`).getTime();
+      const dateB = new Date(`${b.date} ${b.startTime}`).getTime();
+      return dateB - dateA;
+    });
+  }, [orders]);
 
   const filteredOrders = useMemo(() => {
     if (activeTab === 'all') return allOrders;

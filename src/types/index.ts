@@ -25,6 +25,13 @@ export interface TimeSlotRate {
   endTime: string;
   rateType: RateType;
   pricePerHour: number;
+  enabled?: boolean;
+}
+
+// 费率校验结果
+export interface RateValidationResult {
+  valid: boolean;
+  message: string;
 }
 
 // 时段信息

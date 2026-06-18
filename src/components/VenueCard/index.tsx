@@ -4,6 +4,7 @@ import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
 import type { Venue } from '@/types';
 import { venueTypeNames } from '@/data/venues';
+import { useBookingStore } from '@/store/useBookingStore';
 
 interface VenueCardProps {
   venue: Venue;
@@ -12,6 +13,8 @@ interface VenueCardProps {
 }
 
 const VenueCard: React.FC<VenueCardProps> = ({ venue, pricePerHour = 40, onBook }) => {
+  const { setSelectedVenue } = useBookingStore();
+
   const handleCardClick = () => {
     Taro.navigateTo({
       url: `/pages/venue-detail/index?id=${venue.id}`
@@ -23,8 +26,9 @@ const VenueCard: React.FC<VenueCardProps> = ({ venue, pricePerHour = 40, onBook 
     if (onBook) {
       onBook();
     } else {
-      Taro.navigateTo({
-        url: `/pages/booking/index?venueId=${venue.id}`
+      setSelectedVenue(venue.id);
+      Taro.switchTab({
+        url: '/pages/booking/index'
       });
     }
   };

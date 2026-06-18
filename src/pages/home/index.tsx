@@ -4,7 +4,8 @@ import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
 import VenueCard from '@/components/VenueCard';
 import { categoryOptions, venues } from '@/data/venues';
-import { getDefaultRateTable, getRateForTime, getCurrentTime } from '@/utils/timeSlot';
+import { getRateForTime, getCurrentTime } from '@/utils/timeSlot';
+import { useBookingStore } from '@/store/useBookingStore';
 import type { VenueType } from '@/types';
 
 const categoryIcons: Record<string, string> = {
@@ -27,8 +28,9 @@ const quickActions = [
 
 const HomePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<VenueType | 'all'>('all');
+  const { getActiveRateTable } = useBookingStore();
 
-  const rateTable = useMemo(() => getDefaultRateTable(), []);
+  const rateTable = useMemo(() => getActiveRateTable(), [getActiveRateTable]);
   const currentTime = getCurrentTime();
 
   const filteredVenues = useMemo(() => {

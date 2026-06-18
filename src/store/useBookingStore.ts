@@ -16,10 +16,81 @@ import {
   getDefaultRateTable,
   buildAvailableTimeSlots,
   getCurrentDate,
-  formatDuration
+  validateRateTable
 } from '@/utils/timeSlot';
 import { calculateBilling } from '@/utils/billing';
 import { checkTimeConflict, validateBookingTime } from '@/utils/conflict';
+
+const STORAGE_KEY_ORDERS = 'booking_orders';
+const STORAGE_KEY_RATES = 'booking_rate_table';
+const STORAGE_KEY_VENUE = 'booking_selected_venue';
+
+function loadOrders(): BookingOrder[] {
+  try {
+    const stored = Taro.getStorageSync(STORAGE_KEY_ORDERS);
+    if (stored) {
+      return JSON.parse(stored) as BookingOrder[];
+    }
+  } catch (e) {
+    console.error('[BookingStore] 读取订单失败', e);
+  }
+  return [...mockOrders];
+}
+
+function saveOrders(orders: BookingOrder[]) {
+  try {
+    Taro.setStorageSync(STORAGE_KEY_ORDERS, JSON.stringify(orders));
+  } catch (e) {
+    console.error('[BookingStore] 保存订单失败', e);
+  }
+}
+
+function loadRateTable(): TimeSlotRate[] {
+  try {
+    const stored = Taro.getStorageSync(STORAGE_KEY_RATES);
+    if (stored) {
+      return JSON.parse(stored) as TimeSlotRate[];
+    }
+  } catch (e) {
+    console.error('[BookingStore] 读取费率表失败', e);
+  }
+  return getDefaultRateTable();
+}
+
+function saveRateTable(table: TimeSlotRate[]) {
+  try {
+    Taro.setStorageSync(STORAGE_KEY_RATES, JSON.stringify(table));
+  } catch (e) {
+    console.error('[BookingStore] 保存费率表失败', e);
+  }
+}
+
+function loadSelectedVenue(): string {
+  try {
+    const stored = Taro.getStorageSync(STORAGE_KEY_VENUE);
+    if (stored && typeof stored === 'string' && stored.trim() !== '') {
+      const exists = venues.some(v => v.id === stored);
+      if (exists) return stored;
+    }
+  } catch (e) {
+    console.error('[BookingStore] 读取选中场馆失败', e);
+  }
+  return venues[0]?.id || '';
+}
+
+function saveSelectedVenue(venueId: string) {
+  try {
+    Taro.setStorageSync(STORAGE_KEY_VENUE, venueId);
+  } catch (e) {
+    console.error('[BookingStore] 保存选中场馆失败', e);
+  }
+}
+
+function generateOrderNo(): string {
+  const now = dayjs();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `GYM${now.format('YYYYMMDDHHmmss')}${random}`;
+}
 
 interface BookingState {
   orders: BookingOrder[];
@@ -44,46 +115,27 @@ interface BookingState {
   getOrderById: (orderId: string) => BookingOrder | undefined;
   getMyOrders: () => BookingOrder[];
   resetSelection: () => void;
-}
 
-const STORAGE_KEY = 'booking_orders';
-
-function loadOrders(): BookingOrder[] {
-  try {
-    const stored = Taro.getStorageSync(STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored) as BookingOrder[];
-    }
-  } catch (e) {
-    console.error('[BookingStore] 读取订单失败', e);
-  }
-  return [...mockOrders];
-}
-
-function saveOrders(orders: BookingOrder[]) {
-  try {
-    Taro.setStorageSync(STORAGE_KEY, JSON.stringify(orders));
-  } catch (e) {
-    console.error('[BookingStore] 保存订单失败', e);
-  }
-}
-
-function generateOrderNo(): string {
-  const now = dayjs();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `GYM${now.format('YYYYMMDDHHmmss')}${random}`;
+  addRate: (rate: TimeSlotRate) => { success: boolean; message: string };
+  updateRate: (rate: TimeSlotRate) => { success: boolean; message: string };
+  toggleRate: (rateId: string) => void;
+  deleteRate: (rateId: string) => void;
+  resetRateTable: () => void;
+  getActiveRateTable: () => TimeSlotRate[];
+  validateRate: (rate: TimeSlotRate, excludeId?: string) => { valid: boolean; message: string };
 }
 
 export const useBookingStore = create<BookingState>((set, get) => ({
   orders: loadOrders(),
   venues: venues,
-  rateTable: getDefaultRateTable(),
-  selectedVenueId: venues[0]?.id || '',
+  rateTable: loadRateTable(),
+  selectedVenueId: loadSelectedVenue(),
   selectedDate: getCurrentDate(),
   selectedStartTime: '',
   selectedEndTime: '',
 
   setSelectedVenue: (venueId: string) => {
+    saveSelectedVenue(venueId);
     set({ selectedVenueId: venueId, selectedStartTime: '', selectedEndTime: '' });
   },
 
@@ -112,6 +164,10 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     set({ selectedEndTime: time });
   },
 
+  getActiveRateTable: () => {
+    return get().rateTable.filter(r => r.enabled !== false);
+  },
+
   getAvailableTimeSlots: (venueId: string, date: string) => {
     const state = get();
     const venue = state.venues.find(v => v.id === venueId);
@@ -127,7 +183,8 @@ export const useBookingStore = create<BookingState>((set, get) => ({
       )
       .map(o => ({ startTime: o.startTime, endTime: o.endTime }));
 
-    return buildAvailableTimeSlots(venue.openTime, venue.closeTime, bookedSlots, state.rateTable);
+    const activeRates = state.getActiveRateTable();
+    return buildAvailableTimeSlots(venue.openTime, venue.closeTime, bookedSlots, activeRates);
   },
 
   getCurrentVenue: () => {
@@ -147,7 +204,8 @@ export const useBookingStore = create<BookingState>((set, get) => ({
       };
     }
 
-    return calculateBilling(state.selectedStartTime, state.selectedEndTime, state.rateTable);
+    const activeRates = state.getActiveRateTable();
+    return calculateBilling(state.selectedStartTime, state.selectedEndTime, activeRates);
   },
 
   checkConflict: () => {
@@ -161,6 +219,69 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     );
 
     return checkTimeConflict(state.selectedStartTime, state.selectedEndTime, venueOrders);
+  },
+
+  validateRate: (rate: TimeSlotRate, excludeId?: string) => {
+    const result = validateRateTable(rate, get().rateTable, excludeId);
+    return { valid: result.valid, message: result.message };
+  },
+
+  addRate: (rate: TimeSlotRate) => {
+    const state = get();
+    const validation = validateRateTable(rate, state.rateTable);
+    if (!validation.valid) {
+      return { success: false, message: validation.message };
+    }
+
+    const newRate: TimeSlotRate = {
+      ...rate,
+      id: rate.id || `r${Date.now()}`,
+      enabled: rate.enabled !== false
+    };
+
+    const newTable = [...state.rateTable, newRate].sort(
+      (a, b) => a.startTime.localeCompare(b.startTime)
+    );
+    set({ rateTable: newTable });
+    saveRateTable(newTable);
+    return { success: true, message: '添加成功' };
+  },
+
+  updateRate: (rate: TimeSlotRate) => {
+    const state = get();
+    const validation = validateRateTable(rate, state.rateTable, rate.id);
+    if (!validation.valid) {
+      return { success: false, message: validation.message };
+    }
+
+    const newTable = state.rateTable
+      .map(r => (r.id === rate.id ? { ...r, ...rate } : r))
+      .sort((a, b) => a.startTime.localeCompare(b.startTime));
+    set({ rateTable: newTable });
+    saveRateTable(newTable);
+    return { success: true, message: '更新成功' };
+  },
+
+  toggleRate: (rateId: string) => {
+    const state = get();
+    const newTable = state.rateTable.map(r =>
+      r.id === rateId ? { ...r, enabled: r.enabled === false ? true : false } : r
+    );
+    set({ rateTable: newTable });
+    saveRateTable(newTable);
+  },
+
+  deleteRate: (rateId: string) => {
+    const state = get();
+    const newTable = state.rateTable.filter(r => r.id !== rateId);
+    set({ rateTable: newTable });
+    saveRateTable(newTable);
+  },
+
+  resetRateTable: () => {
+    const defaultTable = getDefaultRateTable();
+    set({ rateTable: defaultTable });
+    saveRateTable(defaultTable);
   },
 
   createBooking: async (form: BookingForm) => {
@@ -194,7 +315,8 @@ export const useBookingStore = create<BookingState>((set, get) => ({
       return null;
     }
 
-    const billing = calculateBilling(form.startTime, form.endTime, state.rateTable);
+    const activeRates = state.getActiveRateTable();
+    const billing = calculateBilling(form.startTime, form.endTime, activeRates);
 
     const newOrder: BookingOrder = {
       id: `o${Date.now()}`,

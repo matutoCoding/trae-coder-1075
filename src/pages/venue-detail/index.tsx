@@ -4,16 +4,19 @@ import Taro, { useRouter } from '@tarojs/taro';
 import classnames from 'classnames';
 import styles from './index.module.scss';
 import { getVenueById, venueTypeNames } from '@/data/venues';
-import { getDefaultRateTable, getCurrentTime, getRateForTime } from '@/utils/timeSlot';
+import { getCurrentTime, getRateForTime } from '@/utils/timeSlot';
 import { getRateName } from '@/utils/timeSlot';
+import { useBookingStore } from '@/store/useBookingStore';
 import type { Venue } from '@/types';
 
 const VenueDetailPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.params;
 
+  const { getActiveRateTable, setSelectedVenue } = useBookingStore();
+
   const venue = useMemo(() => getVenueById(id || ''), [id]);
-  const rateTable = useMemo(() => getDefaultRateTable(), []);
+  const rateTable = useMemo(() => getActiveRateTable(), [getActiveRateTable]);
   const currentTime = getCurrentTime();
 
   const currentRate = useMemo(() => {
@@ -25,8 +28,11 @@ const VenueDetailPage: React.FC = () => {
   };
 
   const handleBook = () => {
-    Taro.navigateTo({
-      url: `/pages/booking/index?venueId=${venue?.id}`
+    if (venue?.id) {
+      setSelectedVenue(venue.id);
+    }
+    Taro.switchTab({
+      url: '/pages/booking/index'
     });
   };
 
