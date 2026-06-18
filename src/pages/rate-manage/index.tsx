@@ -4,7 +4,7 @@ import Taro from '@tarojs/taro';
 import classnames from 'classnames';
 import styles from './index.module.scss';
 import { useBookingStore } from '@/store/useBookingStore';
-import { getRateName } from '@/utils/timeSlot';
+import { getRateName, isValidTimeFormat } from '@/utils/timeSlot';
 import type { TimeSlotRate, RateType } from '@/types';
 
 const RATE_TYPES: Array<{ type: RateType; name: string }> = [
@@ -23,17 +23,46 @@ const emptyForm: TimeSlotRate = {
   enabled: true
 };
 
+function splitTime(time: string): { hour: string; minute: string } {
+  if (!time || !isValidTimeFormat(time)) {
+    return { hour: '', minute: '' };
+  }
+  const [h, m] = time.split(':');
+  return { hour: h, minute: m };
+}
+
+function joinTime(hour: string, minute: string): string {
+  const h = hour.padStart(2, '0');
+  const m = minute.padStart(2, '0');
+  return `${h}:${m}`;
+}
+
 const RateManagePage: React.FC = () => {
-  const { rateTable, addRate, updateRate, toggleRate, deleteRate, resetRateTable, validateRate } = useBookingStore();
+  const rateTable = useBookingStore(state => state.rateTable);
+  const addRate = useBookingStore(state => state.addRate);
+  const updateRate = useBookingStore(state => state.updateRate);
+  const toggleRate = useBookingStore(state => state.toggleRate);
+  const deleteRate = useBookingStore(state => state.deleteRate);
+  const resetRateTable = useBookingStore(state => state.resetRateTable);
+  const validateRate = useBookingStore(state => state.validateRate);
 
   const [showModal, setShowModal] = useState(false);
   const [editingRate, setEditingRate] = useState<TimeSlotRate | null>(null);
   const [form, setForm] = useState<TimeSlotRate>(emptyForm);
   const [errorMsg, setErrorMsg] = useState('');
 
+  const startParts = useMemo(() => splitTime(form.startTime), [form.startTime]);
+  const endParts = useMemo(() => splitTime(form.endTime), [form.endTime]);
+
   const sortedRates = useMemo(() => {
     return [...rateTable].sort((a, b) => a.startTime.localeCompare(b.startTime));
   }, [rateTable]);
+
+  useEffect(() => {
+    if (!showModal) return;
+    const validation = validateRate(form, editingRate?.id);
+    setErrorMsg(validation.valid ? '' : validation.message);
+  }, [form, showModal, editingRate, validateRate]);
 
   const openAddModal = () => {
     setEditingRate(null);
@@ -62,7 +91,7 @@ const RateManagePage: React.FC = () => {
   const handleDelete = async (rateId: string) => {
     const res = await Taro.showModal({
       title: '确认删除',
-      content: '删除后该时段将采用平峰默认费率，确定删除吗？',
+      content: '删除后该时段将不再参与计费，确定删除吗？',
       confirmColor: '#F53F3F'
     });
     if (res.confirm) {
@@ -95,20 +124,28 @@ const RateManagePage: React.FC = () => {
       rateType: type,
       pricePerHour: type === prev.rateType ? prev.pricePerHour : priceMap[type]
     }));
-    setErrorMsg('');
   };
 
-  const handleFormChange = (field: keyof TimeSlotRate, value: any) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-    setErrorMsg('');
+  const handleTimeChange = (which: 'start' | 'end', part: 'hour' | 'minute', rawValue: string) => {
+    const value = rawValue.replace(/\D/g, '').slice(0, 2);
+    const num = parseInt(value, 10);
+
+    if (part === 'hour' && num > 23) return;
+    if (part === 'minute' && num > 59) return;
+
+    const current = which === 'start' ? startParts : endParts;
+    const newParts = { ...current, [part]: value };
+    const newTime = joinTime(newParts.hour || '0', newParts.minute || '0');
+
+    setForm(prev => ({ ...prev, [which === 'start' ? 'startTime' : 'endTime']: newTime }));
+  };
+
+  const handlePriceChange = (rawValue: string) => {
+    const val = rawValue === '' ? 0 : Number(rawValue);
+    setForm(prev => ({ ...prev, pricePerHour: isNaN(val) ? 0 : val }));
   };
 
   const handleSubmit = () => {
-    if (form.rateType !== 'public-welfare' && (!form.pricePerHour || form.pricePerHour < 0)) {
-      setErrorMsg('请输入有效的单价');
-      return;
-    }
-
     const validation = validateRate(form, editingRate?.id);
     if (!validation.valid) {
       setErrorMsg(validation.message);
@@ -220,24 +257,47 @@ const RateManagePage: React.FC = () => {
             </View>
 
             <View className={styles.formItem}>
-              <Text className={styles.formLabel}>起止时间</Text>
+              <Text className={styles.formLabel}>开始时间</Text>
               <View className={styles.timeRow}>
                 <Input
                   className={classnames(styles.formInput, styles.timeInput)}
-                  type='digit'
-                  placeholder='开始 HH:mm'
-                  value={form.startTime}
-                  onInput={(e) => handleFormChange('startTime', e.detail.value)}
-                  maxlength={5}
+                  type='number'
+                  placeholder='09'
+                  value={startParts.hour}
+                  onInput={(e) => handleTimeChange('start', 'hour', e.detail.value)}
+                  maxlength={2}
                 />
-                <Text style={{ color: '#86909C' }}>至</Text>
+                <Text style={{ color: '#86909C', fontSize: '32rpx', fontWeight: 'bold' }}>:</Text>
                 <Input
                   className={classnames(styles.formInput, styles.timeInput)}
-                  type='digit'
-                  placeholder='结束 HH:mm'
-                  value={form.endTime}
-                  onInput={(e) => handleFormChange('endTime', e.detail.value)}
-                  maxlength={5}
+                  type='number'
+                  placeholder='00'
+                  value={startParts.minute}
+                  onInput={(e) => handleTimeChange('start', 'minute', e.detail.value)}
+                  maxlength={2}
+                />
+              </View>
+            </View>
+
+            <View className={styles.formItem}>
+              <Text className={styles.formLabel}>结束时间</Text>
+              <View className={styles.timeRow}>
+                <Input
+                  className={classnames(styles.formInput, styles.timeInput)}
+                  type='number'
+                  placeholder='18'
+                  value={endParts.hour}
+                  onInput={(e) => handleTimeChange('end', 'hour', e.detail.value)}
+                  maxlength={2}
+                />
+                <Text style={{ color: '#86909C', fontSize: '32rpx', fontWeight: 'bold' }}>:</Text>
+                <Input
+                  className={classnames(styles.formInput, styles.timeInput)}
+                  type='number'
+                  placeholder='00'
+                  value={endParts.minute}
+                  onInput={(e) => handleTimeChange('end', 'minute', e.detail.value)}
+                  maxlength={2}
                 />
               </View>
             </View>
@@ -249,16 +309,11 @@ const RateManagePage: React.FC = () => {
                 type='digit'
                 placeholder='请输入单价'
                 value={String(form.pricePerHour)}
-                onInput={(e) => {
-                  const val = e.detail.value === '' ? 0 : Number(e.detail.value);
-                  handleFormChange('pricePerHour', isNaN(val) ? 0 : val);
-                }}
+                onInput={(e) => handlePriceChange(e.detail.value)}
                 disabled={form.rateType === 'public-welfare'}
               />
               {form.rateType === 'public-welfare' && (
-                <Text className={styles.errorTip} style={{ color: '#00B4A8' }}>
-                  公益时段自动设为免费
-                </Text>
+                <Text className={styles.hintTip}>公益时段自动设为免费</Text>
               )}
             </View>
 
@@ -270,7 +325,13 @@ const RateManagePage: React.FC = () => {
               <Button className={classnames(styles.modalBtn, styles.cancel)} onClick={closeModal}>
                 取消
               </Button>
-              <Button className={classnames(styles.modalBtn, styles.confirm)} onClick={handleSubmit}>
+              <Button
+                className={classnames(styles.modalBtn, styles.confirm, {
+                  [styles.disabled]: !!errorMsg
+                })}
+                onClick={handleSubmit}
+                disabled={!!errorMsg}
+              >
                 保存
               </Button>
             </View>

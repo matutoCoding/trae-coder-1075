@@ -284,6 +284,12 @@
   margin-top: $spacing-xs;
 }
 
+.hintTip {
+  font-size: $font-size-xs;
+  color: $color-public-welfare;
+  margin-top: $spacing-xs;
+}
+
 .modalActions {
   display: flex;
   gap: $spacing-md;
@@ -306,6 +312,10 @@
   &.confirm {
     background: $gradient-primary;
     color: $color-text-white;
+
+    &.disabled {
+      opacity: 0.5;
+    }
   }
 }
 

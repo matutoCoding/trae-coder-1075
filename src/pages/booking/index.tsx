@@ -1,18 +1,28 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, Button } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useRouter, useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
 import styles from './index.module.scss';
 import { useBookingStore } from '@/store/useBookingStore';
-import { generateDateOptions, formatDuration, timeToMinutes, getRateName } from '@/utils/timeSlot';
+import {
+  generateDateOptions,
+  formatDuration,
+  timeToMinutes,
+  getRateName,
+  buildAvailableTimeSlots
+} from '@/utils/timeSlot';
+import { calculateBilling } from '@/utils/billing';
+import { checkTimeConflict } from '@/utils/conflict';
 import { formatCurrency } from '@/utils/billing';
 import type { TimeSlot, DateOption } from '@/types';
 
 const BookingPage: React.FC = () => {
   const router = useRouter();
-  const { venueId } = router.params;
+  const { venueId: venueIdParam } = router.params;
 
   const venues = useBookingStore(state => state.venues);
+  const orders = useBookingStore(state => state.orders);
+  const rateTable = useBookingStore(state => state.rateTable);
   const selectedVenueId = useBookingStore(state => state.selectedVenueId);
   const selectedDate = useBookingStore(state => state.selectedDate);
   const selectedStartTime = useBookingStore(state => state.selectedStartTime);
@@ -21,32 +31,66 @@ const BookingPage: React.FC = () => {
   const setSelectedDate = useBookingStore(state => state.setSelectedDate);
   const setSelectedStartTime = useBookingStore(state => state.setSelectedStartTime);
   const setSelectedEndTime = useBookingStore(state => state.setSelectedEndTime);
-  const getAvailableTimeSlots = useBookingStore(state => state.getAvailableTimeSlots);
-  const calculateBilling = useBookingStore(state => state.calculateBilling);
-  const checkConflict = useBookingStore(state => state.checkConflict);
 
   const [dateOptions, setDateOptions] = useState<DateOption[]>([]);
 
   useEffect(() => {
     setDateOptions(generateDateOptions(7));
-    if (venueId) {
-      setSelectedVenue(venueId);
+    if (venueIdParam) {
+      setSelectedVenue(venueIdParam);
     }
-  }, [venueId, setSelectedVenue]);
+  }, [venueIdParam, setSelectedVenue]);
+
+  useDidShow(() => {
+    // tabBar 切换回来时，如果有传参也处理一下
+    if (venueIdParam && venueIdParam !== selectedVenueId) {
+      setSelectedVenue(venueIdParam);
+    }
+  });
+
+  const activeRates = useMemo(
+    () => rateTable.filter(r => r.enabled !== false),
+    [rateTable]
+  );
+
+  const currentVenue = useMemo(
+    () => venues.find(v => v.id === selectedVenueId),
+    [venues, selectedVenueId]
+  );
 
   const timeSlots = useMemo(() => {
-    return getAvailableTimeSlots(selectedVenueId, selectedDate);
-  }, [selectedVenueId, selectedDate, getAvailableTimeSlots]);
+    if (!currentVenue) return [];
+
+    const bookedSlots = orders
+      .filter(
+        o =>
+          o.venueId === selectedVenueId &&
+          o.date === selectedDate &&
+          o.status !== 'cancelled' &&
+          o.status !== 'refunded'
+      )
+      .map(o => ({ startTime: o.startTime, endTime: o.endTime }));
+
+    return buildAvailableTimeSlots(
+      currentVenue.openTime,
+      currentVenue.closeTime,
+      bookedSlots,
+      activeRates
+    );
+  }, [currentVenue, selectedVenueId, selectedDate, orders, activeRates]);
 
   const billing = useMemo(() => {
     if (!selectedStartTime || !selectedEndTime) return null;
-    return calculateBilling();
-  }, [selectedStartTime, selectedEndTime, calculateBilling]);
+    return calculateBilling(selectedStartTime, selectedEndTime, activeRates);
+  }, [selectedStartTime, selectedEndTime, activeRates]);
 
   const conflict = useMemo(() => {
     if (!selectedStartTime || !selectedEndTime) return null;
-    return checkConflict();
-  }, [selectedStartTime, selectedEndTime, checkConflict]);
+    const venueOrders = orders.filter(
+      o => o.venueId === selectedVenueId && o.date === selectedDate
+    );
+    return checkTimeConflict(selectedStartTime, selectedEndTime, venueOrders);
+  }, [selectedStartTime, selectedEndTime, selectedVenueId, selectedDate, orders]);
 
   const handleVenueSelect = (id: string) => {
     setSelectedVenue(id);
@@ -113,8 +157,6 @@ const BookingPage: React.FC = () => {
       url: `/pages/booking-confirm/index?venueId=${selectedVenueId}&date=${selectedDate}&startTime=${selectedStartTime}&endTime=${selectedEndTime}`
     });
   };
-
-  const selectedVenue = venues.find(v => v.id === selectedVenueId);
 
   return (
     <View className={styles.page}>

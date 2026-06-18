@@ -28,9 +28,13 @@ const quickActions = [
 
 const HomePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<VenueType | 'all'>('all');
-  const { getActiveRateTable } = useBookingStore();
+  const rateTable = useBookingStore(state => state.rateTable);
+  const setSelectedVenue = useBookingStore(state => state.setSelectedVenue);
 
-  const rateTable = useMemo(() => getActiveRateTable(), [getActiveRateTable]);
+  const activeRates = useMemo(
+    () => rateTable.filter(r => r.enabled !== false),
+    [rateTable]
+  );
   const currentTime = getCurrentTime();
 
   const filteredVenues = useMemo(() => {
@@ -39,7 +43,7 @@ const HomePage: React.FC = () => {
   }, [selectedCategory]);
 
   const getCurrentPrice = (): number => {
-    const rate = getRateForTime(currentTime, rateTable);
+    const rate = getRateForTime(currentTime, activeRates);
     return rate?.pricePerHour || 40;
   };
 

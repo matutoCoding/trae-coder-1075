@@ -13,15 +13,19 @@ const VenueDetailPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.params;
 
-  const { getActiveRateTable, setSelectedVenue } = useBookingStore();
+  const rateTable = useBookingStore(state => state.rateTable);
+  const setSelectedVenue = useBookingStore(state => state.setSelectedVenue);
 
   const venue = useMemo(() => getVenueById(id || ''), [id]);
-  const rateTable = useMemo(() => getActiveRateTable(), [getActiveRateTable]);
+  const activeRates = useMemo(
+    () => rateTable.filter(r => r.enabled !== false),
+    [rateTable]
+  );
   const currentTime = getCurrentTime();
 
   const currentRate = useMemo(() => {
-    return getRateForTime(currentTime, rateTable);
-  }, [currentTime, rateTable]);
+    return getRateForTime(currentTime, activeRates);
+  }, [currentTime, activeRates]);
 
   const handleBack = () => {
     Taro.navigateBack();
@@ -105,7 +109,7 @@ const VenueDetailPage: React.FC = () => {
           <View className={styles.section}>
             <Text className={styles.sectionTitle}>时段费率</Text>
             <View className={styles.rateTable}>
-              {rateTable.map(rate => (
+              {activeRates.map(rate => (
                 <View key={rate.id} className={styles.rateRow}>
                   <View className={styles.rateName}>
                     <View className={classnames(styles.rateTypeTag, styles[rate.rateType])}>

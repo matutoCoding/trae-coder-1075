@@ -14,7 +14,9 @@ const BookingConfirmPage: React.FC = () => {
   const router = useRouter();
   const { venueId, date, startTime, endTime } = router.params;
 
-  const { createBooking, orders, getActiveRateTable } = useBookingStore();
+  const rateTable = useBookingStore(state => state.rateTable);
+  const orders = useBookingStore(state => state.orders);
+  const createBooking = useBookingStore(state => state.createBooking);
 
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
@@ -22,12 +24,15 @@ const BookingConfirmPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const venue = useMemo(() => getVenueById(venueId || ''), [venueId]);
-  const rateTable = useMemo(() => getActiveRateTable(), [getActiveRateTable]);
+  const activeRates = useMemo(
+    () => rateTable.filter(r => r.enabled !== false),
+    [rateTable]
+  );
 
   const billing: BillingInfo | null = useMemo(() => {
     if (!startTime || !endTime) return null;
-    return calculateBilling(startTime, endTime, rateTable);
-  }, [startTime, endTime, rateTable]);
+    return calculateBilling(startTime, endTime, activeRates);
+  }, [startTime, endTime, activeRates]);
 
   const conflictCheck = useMemo(() => {
     if (!venueId || !date || !startTime || !endTime) {

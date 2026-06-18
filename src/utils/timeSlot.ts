@@ -65,6 +65,12 @@ export function getDefaultRateTable(): TimeSlotRate[] {
   ];
 }
 
+export function isValidTimeFormat(time: string): boolean {
+  if (!time || typeof time !== 'string') return false;
+  const regex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+  return regex.test(time);
+}
+
 export function validateRateTable(
   rate: TimeSlotRate,
   allRates: TimeSlotRate[],
@@ -72,6 +78,20 @@ export function validateRateTable(
   openTime: string = '06:00',
   closeTime: string = '22:00'
 ): RateValidationResult {
+  if (!rate.startTime || !rate.startTime.trim()) {
+    return { valid: false, message: '请填写开始时间' };
+  }
+  if (!rate.endTime || !rate.endTime.trim()) {
+    return { valid: false, message: '请填写结束时间' };
+  }
+
+  if (!isValidTimeFormat(rate.startTime)) {
+    return { valid: false, message: '开始时间格式不正确，请使用 HH:mm 格式（如 09:00）' };
+  }
+  if (!isValidTimeFormat(rate.endTime)) {
+    return { valid: false, message: '结束时间格式不正确，请使用 HH:mm 格式（如 18:00）' };
+  }
+
   const startMin = timeToMinutes(rate.startTime);
   const endMin = timeToMinutes(rate.endTime);
   const openMin = timeToMinutes(openTime);
@@ -79,6 +99,10 @@ export function validateRateTable(
 
   if (startMin >= endMin) {
     return { valid: false, message: '结束时间必须晚于开始时间' };
+  }
+
+  if (endMin > 24 * 60) {
+    return { valid: false, message: '结束时间不能超过 24:00' };
   }
 
   if (startMin < openMin || endMin > closeMin) {
